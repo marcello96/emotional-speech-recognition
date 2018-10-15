@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Emotional speech recognition</string>
+    <string name="mfccLabel">TextView</string>
+    <string name="pitchLabel">hello</string>
 </resources>
