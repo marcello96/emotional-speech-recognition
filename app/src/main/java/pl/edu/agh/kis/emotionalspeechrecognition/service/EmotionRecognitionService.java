@@ -7,6 +7,6 @@ import retrofit2.http.Body;
 import retrofit2.http.POST;
 
 public interface EmotionRecognitionService {
-    @POST("/emotion/analyze")
+    @POST("/analyze")
     Single<EmotionRecognitionResp> getEmotionType(@Body EmotionRecognitionReq request);
 }

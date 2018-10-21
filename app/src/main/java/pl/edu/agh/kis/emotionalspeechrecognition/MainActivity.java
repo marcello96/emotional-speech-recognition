@@ -12,8 +12,13 @@ import java.util.Arrays;
 import be.tarsos.dsp.AudioDispatcher;
 import be.tarsos.dsp.io.android.AudioDispatcherFactory;
 import be.tarsos.dsp.pitch.PitchProcessor;
+import io.reactivex.SingleObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 import pl.edu.agh.kis.emotionalspeechrecognition.model.EmotionRecognitionReq;
+import pl.edu.agh.kis.emotionalspeechrecognition.model.EmotionRecognitionResp;
 import pl.edu.agh.kis.emotionalspeechrecognition.service.EmotionRecognitionService;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -22,10 +27,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
 
     private static final int SAMPLE_RATE = 22050;
-    private static final float DURATION_OF_SAMPLE_IN_SEC = 1f;
+    private static int INDEX = 0;
+    private static final float DURATION_OF_SAMPLE_IN_SEC = 2f;
     private static final int AUDIO_BUFFER_SIZE = (int)(SAMPLE_RATE*DURATION_OF_SAMPLE_IN_SEC);
     private static final int BUFFER_OVERLAP = 0;
-    private static final String API_BASE_URL = "localhost:8080/api";
+    private static final String API_BASE_URL = "http://emotion-recognition-env.bsexsn8n3k.eu-central-1.elasticbeanstalk.com/";
     private static final int MY_PERMISSIONS_RECORD_AUDIO = 1;
 
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
@@ -33,12 +39,12 @@ public class MainActivity extends AppCompatActivity {
     private EmotionRecognitionService emotionService;
 
     public MainActivity() {
-        /*Retrofit retrofit = new Retrofit.Builder()
+        Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(API_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();
-        emotionService = retrofit.create(EmotionRecognitionService.class);*/
+        emotionService = retrofit.create(EmotionRecognitionService.class);
     }
 
     @Override
@@ -69,6 +75,27 @@ public class MainActivity extends AppCompatActivity {
                                 mfccLabel.setText(Arrays.toString(emotionRequest.getMfcc()));
                             }
                     );
+                    emotionService.getEmotionType(emotionRequest)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new SingleObserver<EmotionRecognitionResp>() {
+                                            @Override
+                                            public void onSubscribe(Disposable d) {
+                                                compositeDisposable.add(d);
+                                            }
+
+                                            @Override
+                                            public void onSuccess(EmotionRecognitionResp emotion) {
+                                                TextView emotionLabel = findViewById(R.id.emotionText);
+                                                emotionLabel.setText(emotion.getEmotion() + INDEX++);
+                                            }
+
+                                            @Override
+                                            public void onError(Throwable e) {
+                                                TextView emotionLabel = findViewById(R.id.emotionText);
+                                                emotionLabel.setText("error");
+                                            }
+                                        });
                 }));
 
         new Thread(dispatcher,"Audio Dispatcher").start();
@@ -101,6 +128,4 @@ public class MainActivity extends AppCompatActivity {
             audioRecord();
         }
     }
-
-
 }

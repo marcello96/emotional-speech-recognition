@@ -4,13 +4,13 @@ import com.google.gson.annotations.Expose;
 
 public class EmotionRecognitionResp {
     @Expose
-    private EmotionType emotion;
+    private String emotion;
 
-    public EmotionType getEmotion() {
+    public String getEmotion() {
         return emotion;
     }
 
-    public void setEmotion(EmotionType emotion) {
+    public void setEmotion(String emotion) {
         this.emotion = emotion;
     }
 }
