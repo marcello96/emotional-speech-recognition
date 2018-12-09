@@ -3,4 +3,9 @@
     <string name="mfccLabel">TextView</string>
     <string name="pitchLabel">hello</string>
     <string name="emotionLabel"></string>
+    <string name="dnnLabel">DNN</string>
+    <string name="cnnLabel">CNN</string>
+    <string name="network">network</string>
+    <string name="stopLabel">Stop</string>
+    <string name="startLabel">Start</string>
 </resources>

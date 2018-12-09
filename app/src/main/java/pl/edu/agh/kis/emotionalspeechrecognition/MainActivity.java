@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.widget.Button;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import java.util.Comparator;
@@ -33,16 +35,20 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int SAMPLE_RATE = 22050;
     private static final int AMOUNT_OF_MFFCS = 25;
-    private static final float DURATION_OF_SAMPLE_IN_SEC = 3f;
+    private static final float DURATION_OF_SAMPLE_IN_SEC = 2f;
     private static final int AUDIO_BUFFER_SIZE = (int)(SAMPLE_RATE*DURATION_OF_SAMPLE_IN_SEC);
     private static final int BUFFER_OVERLAP = 0;
     private static final String API_BASE_URL = "http://ec2-18-194-207-220.eu-central-1.compute.amazonaws.com/";
     private static final int MY_PERMISSIONS_RECORD_AUDIO = 1;
 
+    private Thread audioThread;
+    private AudioDispatcher audioDispatcher;
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private EmotionRecognitionReq emotionRequest = new EmotionRecognitionReq();
     private EmotionRecognitionService emotionService;
     private NetworkType chosenNetworkType = NetworkType.DNN;
+    private boolean isRecording = false;
+
 
     private EmotionView emotionView;
 
@@ -64,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         emotionView = findViewById(R.id.emotionView);
 
+        initializeView();
         audioRecordWrapper();
     }
 
@@ -75,9 +82,9 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    private void audioRecord() {
-        AudioDispatcher dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(SAMPLE_RATE, AUDIO_BUFFER_SIZE, BUFFER_OVERLAP);
-        dispatcher.addAudioProcessor(new MFCCProcessor(AUDIO_BUFFER_SIZE, SAMPLE_RATE, AMOUNT_OF_MFFCS,
+    private void prepareAudioRecordThread() {
+        audioDispatcher = AudioDispatcherFactory.fromDefaultMicrophone(SAMPLE_RATE, AUDIO_BUFFER_SIZE, BUFFER_OVERLAP);
+        audioDispatcher.addAudioProcessor(new MFCCProcessor(AUDIO_BUFFER_SIZE, SAMPLE_RATE, AMOUNT_OF_MFFCS,
                 mfcc -> {
                     emotionRequest.setMfcc(mfcc);
                     runOnUiThread(this::updateSpectrogram);
@@ -101,17 +108,25 @@ public class MainActivity extends AppCompatActivity {
                                             }
                                         });
                 }));
-
-        new Thread(dispatcher,"Audio Dispatcher").start();
+        audioThread = new Thread(audioDispatcher,"Audio Dispatcher");
     }
 
-    public void onClick(View view) {
-        emotionView.darkenEmotionBox(EmotionType.ANGRY);
+    public void onButtonClick(View view) throws InterruptedException {
+        isRecording = !isRecording;
+        Button startButton = findViewById(R.id.startButton);
+        if (isRecording) {
+            startButton.setText(R.string.stopLabel);
+            prepareAudioRecordThread();
+            audioThread.start();
+        } else {
+            startButton.setText(R.string.startLabel);
+            audioDispatcher.stop();
+            audioThread.join();
+            emotionView.lightenAllEmotion();
+        }
     }
 
-    private void updateSpectrogram() {
-
-    }
+    private void updateSpectrogram() {}
 
     private void updatePredictionResultsView(EmotionRecognitionResp response) {
         EmotionType predictedEmotion = getPredictedEmotion(response);
@@ -130,15 +145,17 @@ public class MainActivity extends AppCompatActivity {
                                     .getEmotionType();
     }
 
-
+    private void initializeView() {
+        ((Switch)findViewById(R.id.networkTypeSwitch)).setOnCheckedChangeListener(
+                (buttonView, isCheckedCnn) -> chosenNetworkType = isCheckedCnn ? NetworkType.CNN : NetworkType.DNN
+        );
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case MY_PERMISSIONS_RECORD_AUDIO:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    audioRecord();
-                } else {
+                if (grantResults.length <= 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, "Permissions Denied to record audio", Toast.LENGTH_LONG).show();
                 }
                 break;
@@ -154,9 +171,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Please grant permissions to record audio", Toast.LENGTH_LONG).show();
             }
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, MY_PERMISSIONS_RECORD_AUDIO);
-        }
-        else if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            audioRecord();
         }
     }
 }

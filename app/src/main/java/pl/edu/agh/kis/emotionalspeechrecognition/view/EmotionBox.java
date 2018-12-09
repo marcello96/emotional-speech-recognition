@@ -34,4 +34,8 @@ public class EmotionBox {
             }
         }
     }
+
+    public void lightenAllEmotions() {
+        boxMap.values().forEach(EmotionBoxElem::lighten);
+    }
 }

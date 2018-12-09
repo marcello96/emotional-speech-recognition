@@ -50,10 +50,12 @@ public class EmotionBoxElem {
 
     public void darken() {
         mPaint.setAlpha(HIGH_OPAQUE);
+        textPaint.setColor(Color.WHITE);
     }
 
     public void lighten() {
         mPaint.setAlpha(LOW_OPAQUE);
+        textPaint.setColor(Color.BLACK);
     }
 
     public void draw(Canvas canvas) {

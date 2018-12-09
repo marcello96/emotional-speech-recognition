@@ -7,19 +7,19 @@ public class EmotionTypeToColorConverter {
     public static Colors map(EmotionType emotionType) {
         switch(emotionType) {
             case ANGRY:
-                return Colors.RED;
+                return Colors.RED; //Colors.PURPLE;
             case CALM:
-                return Colors.ORANGE;
+                return Colors.ORANGE; //Colors.BLUE;
             case DISGUST:
-                return Colors.PURPLE;
+                return Colors.PURPLE; //Colors.BLUE;
             case FEARFUL:
-                return Colors.LIGHT_GREEN;
+                return Colors.LIGHT_GREEN; //Colors.PURPLE;
             case HAPPY:
-                return Colors.YELLOW;
+                return Colors.YELLOW; //Colors.PURPLE;
             case NEUTRAL:
-                return Colors.GREEN;
+                return Colors.GREEN; //Colors.BLUE;
             case SAD:
-                return Colors.LIGHT_BLUE;
+                return Colors.LIGHT_BLUE; //Colors.PURPLE;
             case SURPRISED:
                 return Colors.BLUE;
             default:

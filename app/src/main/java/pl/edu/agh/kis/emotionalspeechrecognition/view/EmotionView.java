@@ -51,6 +51,12 @@ public class EmotionView extends View {
         postInvalidate();
     }
 
+    public void lightenAllEmotion() {
+        emotionBox.lightenAllEmotions();
+
+        postInvalidate();
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         emotionBox.draw(canvas);
