@@ -6,40 +6,38 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/mfccLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="36dp"
-        android:layout_marginTop="176dp"
-        android:layout_marginBottom="8dp"
-        android:text="@string/mfccLabel"
-        app:layout_constraintBottom_toTopOf="@+id/pitchResultLabel"
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="318dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="16dp"
+        android:contentDescription="logo"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.277" />
+        app:srcCompat="@mipmap/logo" />
 
-    <TextView
-        android:id="@+id/pitchResultLabel"
-        android:layout_width="143dp"
-        android:layout_height="34dp"
-        android:layout_marginTop="232dp"
-        android:text="@string/pitchLabel"
+    <pl.edu.agh.kis.emotionalspeechrecognition.view.EmotionView
+        android:id="@+id/emotionView"
+        android:layout_width="289dp"
+        android:layout_height="327dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.502"
+        app:layout_constraintHorizontal_bias="0.506"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
-    <TextView
-        android:id="@+id/emotionText"
-        android:layout_width="124dp"
-        android:layout_height="37dp"
-        android:layout_marginBottom="8dp"
-        android:text="@string/emotionLabel"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:onClick="onClick"
+        android:text="Start"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/pitchResultLabel"
-        app:layout_constraintVertical_bias="0.06" />
+        app:layout_constraintTop_toBottomOf="@+id/emotionView" />
 
 </android.support.constraint.ConstraintLayout>
