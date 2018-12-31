@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private static final float DURATION_OF_SAMPLE_IN_SEC = 2f;
     private static final int AUDIO_BUFFER_SIZE = (int)(SAMPLE_RATE*DURATION_OF_SAMPLE_IN_SEC);
     private static final int BUFFER_OVERLAP = 0;
-    private static final String API_BASE_URL = "http://ec2-18-194-207-220.eu-central-1.compute.amazonaws.com/";
+    private static final String API_BASE_URL = "http://ec2-18-195-107-170.eu-central-1.compute.amazonaws.com/";
     private static final int MY_PERMISSIONS_RECORD_AUDIO = 1;
 
     private Thread audioThread;
