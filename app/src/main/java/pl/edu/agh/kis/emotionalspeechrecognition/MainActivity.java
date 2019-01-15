@@ -7,7 +7,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import java.util.Comparator;
@@ -25,6 +24,7 @@ import pl.edu.agh.kis.emotionalspeechrecognition.model.NetworkType;
 import pl.edu.agh.kis.emotionalspeechrecognition.model.dto.EmotionRecognitionElem;
 import pl.edu.agh.kis.emotionalspeechrecognition.model.dto.EmotionRecognitionReq;
 import pl.edu.agh.kis.emotionalspeechrecognition.model.dto.EmotionRecognitionResp;
+import pl.edu.agh.kis.emotionalspeechrecognition.model.dto.InitConfiguration;
 import pl.edu.agh.kis.emotionalspeechrecognition.service.EmotionRecognitionService;
 import pl.edu.agh.kis.emotionalspeechrecognition.view.EmotionView;
 import retrofit2.Retrofit;
@@ -34,7 +34,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity {
 
     private static final int SAMPLE_RATE = 22050;
-    private static final int AMOUNT_OF_MFFCS = 25;
     private static final float DURATION_OF_SAMPLE_IN_SEC = 2f;
     private static final int AUDIO_BUFFER_SIZE = (int)(SAMPLE_RATE*DURATION_OF_SAMPLE_IN_SEC);
     private static final int BUFFER_OVERLAP = 0;
@@ -48,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private EmotionRecognitionService emotionService;
     private NetworkType chosenNetworkType = NetworkType.DNN;
     private boolean isRecording = false;
+    private int numberOfMfccs = 25;
 
 
     private EmotionView emotionView;
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         emotionView = findViewById(R.id.emotionView);
 
-        initializeView();
+        initConfiguration();
         audioRecordWrapper();
     }
 
@@ -84,10 +84,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void prepareAudioRecordThread() {
         audioDispatcher = AudioDispatcherFactory.fromDefaultMicrophone(SAMPLE_RATE, AUDIO_BUFFER_SIZE, BUFFER_OVERLAP);
-        audioDispatcher.addAudioProcessor(new MFCCProcessor(AUDIO_BUFFER_SIZE, SAMPLE_RATE, AMOUNT_OF_MFFCS,
+        audioDispatcher.addAudioProcessor(new MFCCProcessor(AUDIO_BUFFER_SIZE, SAMPLE_RATE, numberOfMfccs,
                 mfcc -> {
-                    emotionRequest.setMfcc(mfcc);
-                    runOnUiThread(this::updateSpectrogram);
+                    emotionRequest.setMfccs(mfcc);
                     emotionService.predictEmotion(chosenNetworkType, emotionRequest)
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
@@ -126,8 +125,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateSpectrogram() {}
-
     private void updatePredictionResultsView(EmotionRecognitionResp response) {
         EmotionType predictedEmotion = getPredictedEmotion(response);
         System.out.println("Got: " + predictedEmotion.toString());
@@ -136,6 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleError(Throwable e) {
         System.out.println("error: "+ e);
+        Toast.makeText(this, "Problem with Internet connection", Toast.LENGTH_LONG).show();
     }
 
     private EmotionType getPredictedEmotion(EmotionRecognitionResp response) {
@@ -145,10 +143,26 @@ public class MainActivity extends AppCompatActivity {
                                     .getEmotionType();
     }
 
-    private void initializeView() {
-        ((Switch)findViewById(R.id.networkTypeSwitch)).setOnCheckedChangeListener(
-                (buttonView, isCheckedCnn) -> chosenNetworkType = isCheckedCnn ? NetworkType.CNN : NetworkType.DNN
-        );
+    private void initConfiguration() {
+        emotionService.getConfiguration()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new SingleObserver<InitConfiguration>() {
+                                @Override
+                                public void onSubscribe(Disposable d) {
+                                    compositeDisposable.add(d);
+                                }
+
+                                @Override
+                                public void onSuccess(InitConfiguration configuration) {
+                                    numberOfMfccs = configuration.getNumberOfMfccs();
+                                }
+
+                                @Override
+                                public void onError(Throwable e) {
+                                    handleError(e);
+                                }
+                            });
     }
 
     @Override

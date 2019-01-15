@@ -5,8 +5,8 @@ import com.google.gson.annotations.Expose;
 import lombok.Data;
 
 @Data
-public class EmotionRecognitionReq {
+public class InitConfiguration {
 
     @Expose
-    private float[] mfccs;
+    private int numberOfMfccs;
 }
